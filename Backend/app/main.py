@@ -2,11 +2,9 @@ import json
 from dotenv import load_dotenv
 load_dotenv()
 from typing import List, Optional
-
 from fastapi import FastAPI, UploadFile, File, Form, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 
-# Assuming your updated llm.py now returns the AnalyzeResponse object directly
 from .llm import analyze_requirements
 from .schemas import AnalyzeResponse
 
@@ -25,13 +23,18 @@ app.add_middleware(
 def health():
     return {"ok": True}
 
+@app.get("/")
+def root():
+    return {"status": "ok"}
+
+
 @app.post("/analyze", response_model=AnalyzeResponse)
 async def analyze(
     user_story: Optional[str] = Form(None),
     acceptance_criteria: Optional[str] = Form(None),
     documents: Optional[List[UploadFile]] = File(None),  # renamed from screenshots -> documents
 ):
-    # ✅ Minimal validation (edge cases covered)
+    # validation (edge cases covered)
     has_text = bool((user_story or "").strip() or (acceptance_criteria or "").strip())
     has_documents = bool(documents)
 
@@ -41,7 +44,7 @@ async def analyze(
             detail="Provide at least one of: user story, acceptance criteria, or documents."
         )
 
-    # ✅ Allowlist for document types (images + pdf + docx + txt)
+    # Allowlist for document types (images + pdf + docx + txt)
     allowed_mimes = {
         "image/png",
         "image/jpeg",
@@ -51,7 +54,6 @@ async def analyze(
     }
     allowed_exts = {".png", ".jpg", ".jpeg", ".pdf", ".txt"}
 
-    # ✅ size guardrails
     max_file_bytes = 8 * 1024 * 1024   # 8MB per file
     max_total_bytes = 20 * 1024 * 1024 # 20MB total
 

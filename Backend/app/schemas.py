@@ -2,7 +2,7 @@ import os
 from google import genai
 from google.genai import types 
 from pydantic import BaseModel, Field
-from typing import List, Optional, Dict, Any, Tuple
+from typing import List, Optional, Dict, Tuple
 from dotenv import load_dotenv
 
 load_dotenv()
