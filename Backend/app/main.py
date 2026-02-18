@@ -23,7 +23,7 @@ app.add_middleware(
 def health():
     return {"ok": True}
 
-@app.get("/", methods=["GET", "HEAD"])
+@app.get("/")
 def root():
     return {"status": "ok"}
 
