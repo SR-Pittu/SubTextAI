@@ -1,34 +1,23 @@
-export async function analyzeRequirements({
-  userStory,
-  acceptanceCriteria,
-  documents
-}) {
-  const formData = new FormData();
+const API_BASE = import.meta.env.VITE_API_BASE_URL;
 
-  // ✅ MUST match FastAPI Form(...) parameter names
+export async function analyzeRequirements({ userStory, acceptanceCriteria, documents }) {
+  const formData = new FormData();
   formData.append("user_story", userStory || "");
   formData.append("acceptance_criteria", acceptanceCriteria || "");
+  (documents || []).forEach((f) => formData.append("documents", f));
 
-  // ✅ MUST match FastAPI File(...) parameter name
-  (documents || []).forEach((file) => {
-    formData.append("documents", file); // <-- NOT documents[]
-  });
-
-  const res = await fetch("http://127.0.0.1:8000/analyze", {
+  const res = await fetch(`${API_BASE}/analyze`, {
     method: "POST",
-    body: formData
+    body: formData,
   });
 
   if (!res.ok) {
-    let message = "Failed to process requirements.";
+    let msg = "Request failed";
     try {
-      const data = await res.json();
-      message = data?.detail || data?.message || message;
-    } catch {
-      // ignore
-    }
-    throw new Error(message);
+      const j = await res.json();
+      msg = j?.detail || msg;
+    } catch {}
+    throw new Error(msg);
   }
-
   return res.json();
 }

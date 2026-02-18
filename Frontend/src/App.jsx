@@ -67,6 +67,16 @@ export default function App() {
     }
   }
 
+  // ✅ ADDED: Reset workspace (only addition)
+  function resetWorkspace() {
+    setUserStory("");
+    setAcceptanceCriteria("");
+    setDocuments([]);
+    setResult(null);
+    setErr("");
+    setFilter("all");
+  }
+
   function exportMarkdown() {
     if (!result) return;
     const md = toMarkdown({ userStory, acceptanceCriteria, result, cards });
@@ -234,25 +244,45 @@ export default function App() {
             title="Project workspace"
             subtitle="Requirements & supporting documents"
             right={
-              <button
-                type="button"
-                onClick={runAnalysis}
-                disabled={loading || !canAnalyze}
-                className="group inline-flex items-center gap-2 rounded-full bg-violet-600 px-6 py-2.5 text-sm font-semibold text-white shadow-soft hover:bg-violet-700 disabled:cursor-not-allowed disabled:opacity-60"
-                title={!canAnalyze ? "Add a story, criteria, or documents to enable analysis." : ""}
-              >
-                {loading ? (
-                  <span className="flex items-center gap-2">
-                    <span className="h-4 w-4 rounded-full border-2 border-white/30 border-t-white animate-spin" />
-                    Analyzing...
-                  </span>
-                ) : (
-                  <>
-                    Start analysis
-                    <ChevronRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
-                  </>
-                )}
-              </button>
+              // ✅ CHANGED: wrap buttons and add Reset (minimal change)
+              <div className="flex items-center gap-3">
+                <button
+                  type="button"
+                  onClick={resetWorkspace}
+                  disabled={
+                    loading ||
+                    (!userStory.trim() &&
+                      !acceptanceCriteria.trim() &&
+                      documents.length === 0 &&
+                      !result &&
+                      !err)
+                  }
+                  className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white/80 px-5 py-2.5 text-sm font-semibold text-slate-700 shadow-soft hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60"
+                  title="Clear inputs and results"
+                >
+                  Reset
+                </button>
+
+                <button
+                  type="button"
+                  onClick={runAnalysis}
+                  disabled={loading || !canAnalyze}
+                  className="group inline-flex items-center gap-2 rounded-full bg-violet-600 px-6 py-2.5 text-sm font-semibold text-white shadow-soft hover:bg-violet-700 disabled:cursor-not-allowed disabled:opacity-60"
+                  title={!canAnalyze ? "Add a story, criteria, or documents to enable analysis." : ""}
+                >
+                  {loading ? (
+                    <span className="flex items-center gap-2">
+                      <span className="h-4 w-4 rounded-full border-2 border-white/30 border-t-white animate-spin" />
+                      Analyzing...
+                    </span>
+                  ) : (
+                    <>
+                      Start analysis
+                      <ChevronRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
+                    </>
+                  )}
+                </button>
+              </div>
             }
           >
             {err ? (
