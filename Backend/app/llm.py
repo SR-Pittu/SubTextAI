@@ -81,8 +81,6 @@ async def _call_with_backoff(fn, max_retries: int = 4):
             is_429 = ("429" in msg) or ("RESOURCE_EXHAUSTED" in msg)
             if not is_429 or attempt == max_retries:
                 raise
-
-            # exponential backoff + jitter
             sleep_s = (2 ** attempt) + random.uniform(0.0, 0.7)
             await asyncio.sleep(sleep_s)
 
@@ -106,23 +104,17 @@ async def analyze_requirements(
 
     parts.append(types.Part.from_text(text="Analyze the requirements and provide feedback."))
 
-    # files (limit count to reduce token/throughput pressure)
     if document_files:
         for (data, mime, filename) in document_files[:MAX_FILES]:
             mime = (mime or "").lower().strip()
             filename = filename or "upload"
 
-            # ✅ text files: decode + send as text, clipped
             if mime == "text/plain" or filename.lower().endswith(".txt"):
                 text = _clip(_safe_decode_text(data), MAX_TEXT_CHARS)
                 parts.append(types.Part.from_text(text=f"DOCUMENT ({filename}):\n{text}"))
                 continue
 
-            # ✅ images/pdf: send as inline bytes
-            # (keep only safe types from your backend allowlist)
             parts.append(types.Part.from_bytes(data=data, mime_type=mime))
-
-    # ✅ Correct structure
     contents = [types.Content(role="user", parts=parts)]
 
     async def _do_call():
@@ -139,7 +131,10 @@ async def analyze_requirements(
 
     try:
         response = await _call_with_backoff(_do_call, max_retries=4)
+
+        if not response or not response.parsed:
+            raise RuntimeError("Gemini returned empty or invalid response") 
         return response.parsed
+
     except Exception as e:
-        # Keep the message informative so FastAPI can decide if it was a 429
         raise RuntimeError(f"Gemini generate_content failed: {e}") from e
