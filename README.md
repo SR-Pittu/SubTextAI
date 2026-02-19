@@ -203,4 +203,18 @@ SubTextAI/
 
 ---
 
+### Known Limitations
 
+Subtext AI uses an external Large Language Model API for requirements analysis. Depending on API availability and rate limits, requests may occasionally experience delays or timeout responses (for example HTTP 504).
+
+If this occurs, retry the request after a few seconds. The application includes error handling to ensure the user interface remains stable and responsive.
+
+This behavior is expected when working with shared or rate limited external APIs and does not affect the overall functionality of the system.
+
+#### Future enhancements to improve reliability include:
+
+- Automatic retry with exponential backoff
+
+- Response caching to reduce repeated API calls
+
+- Queue based request processing for improved scalability and fault tolerance
